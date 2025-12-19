@@ -1,6 +1,7 @@
 package com.energy_app.client;
 
 import com.energy_app.model.external.CarbonIntensityResponse;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -15,6 +16,7 @@ public class CarbonIntensityClientImpl implements CarbonIntensityClient {
         this.restClient = restClient;
     }
 
+    @Cacheable(cacheNames = "generationMix",  key = "#from + '-' + #to")
     public CarbonIntensityResponse fetchGenerationMix(final String from, final String to) {
         final String extensionUrl = "/generation/{from}/{to}";
 
