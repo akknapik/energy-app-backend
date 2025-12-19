@@ -1,5 +1,6 @@
 package com.energy_app.client;
 
+import com.energy_app.exception.ExternalApiException;
 import com.energy_app.model.external.CarbonIntensityResponse;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
@@ -24,10 +25,13 @@ public class CarbonIntensityClientImpl implements CarbonIntensityClient {
                 .fromUriString(extensionUrl)
                 .buildAndExpand(from, to)
                 .toUri();
-
-        return restClient.get()
-                .uri(uri)
-                .retrieve()
-                .body(CarbonIntensityResponse.class);
+        try {
+            return restClient.get()
+                    .uri(uri)
+                    .retrieve()
+                    .body(CarbonIntensityResponse.class);
+        } catch (Exception exception) {
+            throw new ExternalApiException("Failed to connect to Carbon Intensity API.", exception);
+        }
     }
 }

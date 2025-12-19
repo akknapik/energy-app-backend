@@ -1,6 +1,7 @@
 package com.energy_app.service;
 
 import com.energy_app.client.CarbonIntensityClient;
+import com.energy_app.exception.ExternalApiException;
 import com.energy_app.model.dto.DailyMixDto;
 import com.energy_app.model.dto.FuelDto;
 import com.energy_app.model.dto.OptimalWindowDto;
@@ -34,6 +35,9 @@ public class EnergyServiceImpl implements EnergyService {
         String to = today.plusDays(3).atStartOfDay().toString();
         CarbonIntensityResponse carbonIntensityResponse = carbonIntensityClient.fetchGenerationMix(from, to);
 
+        if(carbonIntensityResponse == null || carbonIntensityResponse.data() == null) {
+            throw new ExternalApiException("Received empty data from Carbon Intensity API.");
+        }
         return calculateAveragesAndPercentage(carbonIntensityResponse);
     }
 
@@ -46,7 +50,7 @@ public class EnergyServiceImpl implements EnergyService {
         List<GenerationData> intervals = carbonIntensityResponse.data();
         int windowSize = chargingRequest.numberOfHours() * 2;
         if(intervals.size() < windowSize) {
-            throw new IllegalArgumentException("Not enough data from api");
+            throw new IllegalArgumentException("Not enough data from api.");
         }
 
         return calculateBestWindow(intervals, windowSize);
@@ -126,6 +130,10 @@ public class EnergyServiceImpl implements EnergyService {
                 maxTotalPerc = currentSum;
                 bestStartIndex = i;
             }
+        }
+
+        if(bestStartIndex == -1) {
+            throw new IllegalArgumentException("Could not find optimal charging window.");
         }
 
         GenerationData startInterval = intervals.get(bestStartIndex);
