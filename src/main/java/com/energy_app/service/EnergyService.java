@@ -15,25 +15,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.energy_app.config.CleanFuels.CLEAN;
 import static java.util.stream.Collectors.*;
-
 @Service
 public class EnergyService {
     private final RestClient restClient;
-
-    Set<FuelType> CLEAN = EnumSet.of(
-            FuelType.BIOMASS,
-            FuelType.NUCLEAR,
-            FuelType.HYDRO,
-            FuelType.WIND,
-            FuelType.SOLAR
-    );
 
     public EnergyService() {
         restClient = RestClient.builder()
@@ -51,10 +41,6 @@ public class EnergyService {
     }
 
     public OptimalWindowDto findOptimalChargingWindow(ChargingRequest chargingRequest) {
-        if(chargingRequest.numberOfHours() < 1 || chargingRequest.numberOfHours() > 6) {
-            throw new IllegalArgumentException("Wrong number of hours");
-        }
-
         OffsetDateTime start = snapToNextHalfHour(OffsetDateTime.now());
         OffsetDateTime end = start.plusHours(48);
 
