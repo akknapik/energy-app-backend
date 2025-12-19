@@ -1,8 +1,11 @@
 package com.energy_app;
 
+import com.energy_app.config.CarbonIntensityProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
+@EnableConfigurationProperties(CarbonIntensityProperties.class)
 @SpringBootApplication
 public class EnergyAppApplication {
 

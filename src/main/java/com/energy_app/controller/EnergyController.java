@@ -16,7 +16,7 @@ import java.util.List;
 public class EnergyController {
     private final EnergyService energyService;
 
-    public EnergyController(EnergyService energyService) {
+    public EnergyController(final EnergyService energyService) {
         this.energyService = energyService;
     }
 
