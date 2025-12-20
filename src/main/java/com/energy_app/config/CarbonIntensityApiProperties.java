@@ -3,7 +3,7 @@ package com.energy_app.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "carbon-intensity")
-public class CarbonIntensityProperties {
+public class CarbonIntensityApiProperties {
     private String baseUrl;
 
     public String getBaseUrl() {

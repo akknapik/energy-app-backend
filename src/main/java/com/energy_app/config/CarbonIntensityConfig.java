@@ -8,7 +8,7 @@ import org.springframework.web.client.RestClient;
 public class CarbonIntensityConfig {
 
     @Bean
-    RestClient carbonIntensityRestClient(RestClient.Builder builder, CarbonIntensityProperties properties) {
+    RestClient carbonIntensityRestClient(RestClient.Builder builder, CarbonIntensityApiProperties properties) {
         return builder
                 .baseUrl(properties.getBaseUrl())
                 .build();
