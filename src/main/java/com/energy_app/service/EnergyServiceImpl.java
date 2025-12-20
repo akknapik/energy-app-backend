@@ -49,11 +49,17 @@ public class EnergyServiceImpl implements EnergyService {
 
     public OptimalWindowDto findOptimalChargingWindow(ChargingRequest chargingRequest) {
         OffsetDateTime start = snapToNextHalfHour(OffsetDateTime.now());
+
+        /* Search window is a rolling 48 hours from the next half-hour slot.
+          Using “next 2 calendar days” would truncate today's remaining hours (e.g. morning requests)
+          and could miss an optimal window later today, while also not providing a full second day of data. */
         OffsetDateTime end = start.plusHours(searchWindowHours);
         CarbonIntensityResponse carbonIntensityResponse = getCarbonIntensityResponse(start.toString(),
                 end.toString());
 
         List<GenerationData> intervals = carbonIntensityResponse.data();
+
+        /* Each interval represents 30 minutes, so 1 hour equals 2 intervals. */
         int windowSize = chargingRequest.numberOfHours() * 2;
         if(intervals.size() < windowSize) {
             throw new IllegalArgumentException("Not enough data from api.");
@@ -77,6 +83,10 @@ public class EnergyServiceImpl implements EnergyService {
                 carbonIntensityResponse.data().stream()
                         .filter(gd -> {
                             LocalDate dataDate = OffsetDateTime.parse(gd.from()).toLocalDate();
+
+                            /* When requesting data from today 00:00, the API may include the 23:30–00:00 interval,
+                              which belongs to the previous day. Filter it out to avoid mixing yesterday into
+                              today's results. */
                             return !dataDate.isBefore(LocalDate.now());
                         })
                         .collect(groupingBy(gd -> OffsetDateTime.parse(gd.from()).toLocalDate()));
@@ -119,6 +129,9 @@ public class EnergyServiceImpl implements EnergyService {
         return Math.round(v * 100.0) / 100.0;
     }
 
+    /* Returns the start of the next interval so the search for the optimal charging window begins on a full slot
+    rather than an interval that is already in progress.
+     */
     private OffsetDateTime snapToNextHalfHour(final OffsetDateTime time) {
         int minute = time.getMinute();
         OffsetDateTime baseTime;
