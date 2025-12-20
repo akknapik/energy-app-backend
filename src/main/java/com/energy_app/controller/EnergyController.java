@@ -10,9 +10,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,12 +45,7 @@ public class EnergyController {
     })
     @PostMapping("/optimal-charging")
     ResponseEntity<OptimalWindowDto> getOptimalChargingWindow(
-            @RequestBody(
-                    description = "Request payload containing desired charging duration in hours.",
-                    required = true,
-                    content = @Content(schema = @Schema(implementation = ChargingRequest.class))
-            )
-            @Valid ChargingRequest chargingRequest
+            @Valid @RequestBody ChargingRequest chargingRequest
     ) {
         return ResponseEntity.ok(energyService.findOptimalChargingWindow(chargingRequest));
     }
