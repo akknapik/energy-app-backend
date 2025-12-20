@@ -16,7 +16,7 @@ public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handlerIllegalArgument(IllegalArgumentException exception) {
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException exception) {
         logger.warn("Validation failed for client request: {}", exception.getMessage());
 
         ErrorResponse error = new ErrorResponse(
@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ExternalApiException.class)
-    public ResponseEntity<ErrorResponse> handlerExternalApiError(ExternalApiException exception) {
+    public ResponseEntity<ErrorResponse> handleExternalApiError(ExternalApiException exception) {
         logger.error("Failed to communicate with External API", exception);
 
         ErrorResponse error = new ErrorResponse(
@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handlerGenericException(Exception exception) {
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception exception) {
         logger.error("Unexpected internal system error occurred", exception);
 
         ErrorResponse error = new ErrorResponse(
