@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
                 OffsetDateTime.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
-                exception.getMessage()
+                "Invalid input. Please check your entered values and try again."
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
                 OffsetDateTime.now(),
                 HttpStatus.SERVICE_UNAVAILABLE.value(),
                 "External Service Error",
-                exception.getMessage()
+                "Service temporarily unavailable. Please try again later."
         );
         return new ResponseEntity<>(error, HttpStatus.SERVICE_UNAVAILABLE);
     }
