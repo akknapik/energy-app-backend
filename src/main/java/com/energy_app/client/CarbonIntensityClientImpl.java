@@ -12,6 +12,8 @@ import java.net.URI;
 @Component
 public class CarbonIntensityClientImpl implements CarbonIntensityClient {
     private final RestClient restClient;
+    private static final String extensionUrl = "/generation/{from}/{to}";
+
 
     public CarbonIntensityClientImpl(final RestClient restClient) {
         this.restClient = restClient;
@@ -19,8 +21,6 @@ public class CarbonIntensityClientImpl implements CarbonIntensityClient {
 
     @Cacheable(cacheNames = "generationMix",  key = "#from + '-' + #to")
     public CarbonIntensityResponse fetchGenerationMix(final String from, final String to) {
-        final String extensionUrl = "/generation/{from}/{to}";
-
         final URI uri = UriComponentsBuilder
                 .fromUriString(extensionUrl)
                 .buildAndExpand(from, to)
