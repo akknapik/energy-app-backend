@@ -7,6 +7,6 @@ import com.energy_app.model.external.ChargingRequest;
 import java.util.List;
 
 public interface EnergyService {
-    List<DailyMixDto> getGenerationMixForThreeDays();
+    List<DailyMixDto> getGenerationMix();
     OptimalWindowDto findOptimalChargingWindow(ChargingRequest chargingRequest);
 }

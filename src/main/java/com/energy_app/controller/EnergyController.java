@@ -22,7 +22,7 @@ public class EnergyController {
 
     @GetMapping("/mix")
     ResponseEntity<List<DailyMixDto>> getGenerationMix() {
-        return ResponseEntity.ok(energyService.getGenerationMixForThreeDays());
+        return ResponseEntity.ok(energyService.getGenerationMix());
     }
 
     @PostMapping("/optimal-charging")

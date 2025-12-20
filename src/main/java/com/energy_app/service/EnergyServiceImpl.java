@@ -10,6 +10,8 @@ import com.energy_app.model.external.CarbonIntensityResponse;
 import com.energy_app.model.external.ChargingRequest;
 import com.energy_app.model.external.Fuel;
 import com.energy_app.model.external.GenerationData;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -25,26 +27,30 @@ import static java.util.stream.Collectors.*;
 public class EnergyServiceImpl implements EnergyService {
     private final CarbonIntensityClient carbonIntensityClient;
 
-    public EnergyServiceImpl(CarbonIntensityClient carbonIntensityClient) {
+    private final int generationMixDays;
+    private final int searchWindowHours;
+
+    public EnergyServiceImpl(CarbonIntensityClient carbonIntensityClient,
+                             @Value("${energy.app.generation-mix.days}") int generationMixDays,
+                             @Value("${energy.app.optimization.search-window-hours}") int searchWindowHours) {
         this.carbonIntensityClient = carbonIntensityClient;
+        this.generationMixDays = generationMixDays;
+        this.searchWindowHours = searchWindowHours;
     }
 
-    public List<DailyMixDto> getGenerationMixForThreeDays() {
+    public List<DailyMixDto> getGenerationMix() {
         LocalDate today = LocalDate.now();
         String from = today.atStartOfDay().toString();
-        String to = today.plusDays(3).atStartOfDay().toString();
-        CarbonIntensityResponse carbonIntensityResponse = carbonIntensityClient.fetchGenerationMix(from, to);
+        String to = today.plusDays(generationMixDays).atStartOfDay().toString();
+        CarbonIntensityResponse carbonIntensityResponse = getCarbonIntensityResponse(from, to);
 
-        if(carbonIntensityResponse == null || carbonIntensityResponse.data() == null) {
-            throw new ExternalApiException("Received empty data from Carbon Intensity API.");
-        }
         return calculateAveragesAndPercentage(carbonIntensityResponse);
     }
 
     public OptimalWindowDto findOptimalChargingWindow(ChargingRequest chargingRequest) {
         OffsetDateTime start = snapToNextHalfHour(OffsetDateTime.now());
-        OffsetDateTime end = start.plusHours(48);
-        CarbonIntensityResponse carbonIntensityResponse = carbonIntensityClient.fetchGenerationMix(start.toString(),
+        OffsetDateTime end = start.plusHours(searchWindowHours);
+        CarbonIntensityResponse carbonIntensityResponse = getCarbonIntensityResponse(start.toString(),
                 end.toString());
 
         List<GenerationData> intervals = carbonIntensityResponse.data();
@@ -53,7 +59,17 @@ public class EnergyServiceImpl implements EnergyService {
             throw new IllegalArgumentException("Not enough data from api.");
         }
 
-        return calculateBestWindow(intervals, windowSize);
+        return calculateOptimalWindow(intervals, windowSize);
+    }
+
+    private CarbonIntensityResponse getCarbonIntensityResponse(final String from, final String to) {
+        CarbonIntensityResponse carbonIntensityResponse = carbonIntensityClient.fetchGenerationMix(from, to);
+
+        if(carbonIntensityResponse == null || carbonIntensityResponse.data() == null) {
+            throw new ExternalApiException("Received empty data from Carbon Intensity API.");
+        }
+
+        return carbonIntensityResponse;
     }
 
     private List<DailyMixDto> calculateAveragesAndPercentage(CarbonIntensityResponse carbonIntensityResponse) {
@@ -116,7 +132,7 @@ public class EnergyServiceImpl implements EnergyService {
         return baseTime.plusMinutes(30);
     }
 
-    private OptimalWindowDto calculateBestWindow(List<GenerationData> intervals, int windowSize) {
+    private OptimalWindowDto calculateOptimalWindow(@NotNull List<GenerationData> intervals, int windowSize) {
         double maxTotalPerc = -1.0;
         int bestStartIndex = -1;
 
