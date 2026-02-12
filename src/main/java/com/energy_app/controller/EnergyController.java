@@ -2,20 +2,22 @@ package com.energy_app.controller;
 
 import com.energy_app.model.dto.DailyMixDto;
 import com.energy_app.model.dto.OptimalWindowDto;
-import com.energy_app.model.external.ChargingRequest;
 import com.energy_app.service.EnergyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/energy")
+@Validated
 @Tag(name = "Energy API", description = "Carbon Intensity (generation mix) and optimal charging window endpoints")
 public class EnergyController {
     private final EnergyService energyService;
@@ -42,10 +44,10 @@ public class EnergyController {
             @ApiResponse(responseCode = "400", description = "Invalid number of hours (must be 1-6)"),
             @ApiResponse(responseCode = "503", description = "External Carbon Intensity API unavailable")
     })
-    @PostMapping("/optimal-charging")
+    @GetMapping("/optimal-charging")
     ResponseEntity<OptimalWindowDto> getOptimalChargingWindow(
-            @Valid @RequestBody ChargingRequest chargingRequest
+            @RequestParam @Min(1) @Max(6) int numberOfHours
     ) {
-        return ResponseEntity.ok(energyService.findOptimalChargingWindow(chargingRequest));
+        return ResponseEntity.ok(energyService.findOptimalChargingWindow(numberOfHours));
     }
 }

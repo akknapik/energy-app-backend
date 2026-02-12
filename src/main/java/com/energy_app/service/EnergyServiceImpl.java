@@ -7,7 +7,6 @@ import com.energy_app.model.dto.FuelDto;
 import com.energy_app.model.dto.OptimalWindowDto;
 import com.energy_app.model.enumeration.FuelType;
 import com.energy_app.model.external.CarbonIntensityResponse;
-import com.energy_app.model.external.ChargingRequest;
 import com.energy_app.model.external.Fuel;
 import com.energy_app.model.external.GenerationData;
 import jakarta.validation.constraints.NotNull;
@@ -47,7 +46,7 @@ public class EnergyServiceImpl implements EnergyService {
         return calculateAveragesAndPercentage(carbonIntensityResponse);
     }
 
-    public OptimalWindowDto findOptimalChargingWindow(ChargingRequest chargingRequest) {
+    public OptimalWindowDto findOptimalChargingWindow(int numberOfHours) {
         OffsetDateTime start = snapToNextHalfHour(OffsetDateTime.now());
 
         /* Search window is a rolling 48 hours from the next half-hour slot.
@@ -60,7 +59,7 @@ public class EnergyServiceImpl implements EnergyService {
         List<GenerationData> intervals = carbonIntensityResponse.data();
 
         /* Each interval represents 30 minutes, so 1 hour equals 2 intervals. */
-        int windowSize = chargingRequest.numberOfHours() * 2;
+        int windowSize = numberOfHours * 2;
         if(intervals.size() < windowSize) {
             throw new IllegalArgumentException("Not enough data from api.");
         }
