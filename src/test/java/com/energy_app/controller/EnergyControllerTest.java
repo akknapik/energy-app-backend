@@ -4,7 +4,6 @@ import com.energy_app.model.dto.DailyMixDto;
 import com.energy_app.model.dto.FuelDto;
 import com.energy_app.model.dto.OptimalWindowDto;
 import com.energy_app.model.enumeration.FuelType;
-import com.energy_app.model.external.ChargingRequest;
 import com.energy_app.service.EnergyService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +22,7 @@ import java.util.List;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 @WebMvcTest(EnergyController.class)
 public class EnergyControllerTest {
     @Autowired
@@ -59,9 +59,9 @@ public class EnergyControllerTest {
     }
 
     @Test
-    void postOptimalCharging_returns200AndBody() throws Exception {
+    void getOptimalCharging_returns200AndBody() throws Exception {
         // given
-        when(energyService.findOptimalChargingWindow(new ChargingRequest(2)))
+        when(energyService.findOptimalChargingWindow(2))
                 .thenReturn(new OptimalWindowDto(
                         "2025-12-19T02:00+01:00",
                         "2025-12-19T04:00+01:00",
@@ -69,11 +69,9 @@ public class EnergyControllerTest {
                 ));
 
         // when
-        ResultActions result = mockMvc.perform(post("/api/v1/energy/optimal-charging")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                    {"numberOfHours": 2}
-                    """));
+        ResultActions result = mockMvc.perform(get("/api/v1/energy/optimal-charging")
+                .param("numberOfHours", "2")
+                .contentType(MediaType.APPLICATION_JSON));
 
         // then
         result.andExpect(status().isOk())
@@ -83,4 +81,93 @@ public class EnergyControllerTest {
                 .andExpect(jsonPath("$.percentage").value(55.5));
     }
 
+    @Test
+    void getOptimalCharging_returns400WhenNumberOfHoursIsNegative() throws Exception {
+        // given
+        String negativeHours = "-5";
+
+        // when
+        ResultActions result = mockMvc.perform(get("/api/v1/energy/optimal-charging")
+                .param("numberOfHours", negativeHours));
+
+        // then
+        result.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getOptimalCharging_returns400WhenNumberOfHoursIsNotNumeric() throws Exception {
+        // given
+        String nonNumericValue = "a";
+
+        // when
+        ResultActions result = mockMvc.perform(get("/api/v1/energy/optimal-charging")
+                .param("numberOfHours", nonNumericValue));
+
+        // then
+        result.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getOptimalCharging_returns400WhenNumberOfHoursIsEmpty() throws Exception {
+        // given
+        String emptyValue = "";
+
+        // when
+        ResultActions result = mockMvc.perform(get("/api/v1/energy/optimal-charging")
+                .param("numberOfHours", emptyValue));
+
+        // then
+        result.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getOptimalCharging_returns400WhenNumberOfHoursIsDecimal() throws Exception {
+        // given
+        String decimalValue = "-5.5";
+
+        // when
+        ResultActions result = mockMvc.perform(get("/api/v1/energy/optimal-charging")
+                .param("numberOfHours", decimalValue));
+
+        // then
+        result.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getOptimalCharging_returns400WhenNumberOfHoursDoesNotExceedMin() throws Exception {
+        // given
+        String zeroValue = "0";
+
+        // when
+        ResultActions result = mockMvc.perform(get("/api/v1/energy/optimal-charging")
+                .param("numberOfHours", zeroValue));
+
+        // then
+        result.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getOptimalCharging_returns400WhenNumberOfHoursExceedsMaximum() throws Exception {
+        // given
+        String exceedsMaxValue = "7";
+
+        // when
+        ResultActions result = mockMvc.perform(get("/api/v1/energy/optimal-charging")
+                .param("numberOfHours", exceedsMaxValue));
+
+        // then
+        result.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getOptimalCharging_returns400WhenNumberOfHoursIsMissing() throws Exception {
+        // given
+        // No parameter provided
+
+        // when
+        ResultActions result = mockMvc.perform(get("/api/v1/energy/optimal-charging"));
+
+        // then
+        result.andExpect(status().isBadRequest());
+    }
 }

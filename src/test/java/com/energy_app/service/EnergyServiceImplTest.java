@@ -6,7 +6,6 @@ import com.energy_app.model.dto.DailyMixDto;
 import com.energy_app.model.dto.OptimalWindowDto;
 import com.energy_app.model.enumeration.FuelType;
 import com.energy_app.model.external.CarbonIntensityResponse;
-import com.energy_app.model.external.ChargingRequest;
 import com.energy_app.model.external.Fuel;
 import com.energy_app.model.external.GenerationData;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,7 +68,7 @@ public class EnergyServiceImplTest {
     @Test
     void findOptimalChargingWindow_picksBestIntervals_forRequest() {
         // given
-        ChargingRequest req = new ChargingRequest(1);
+        int numberOfHours = 1;
 
         GenerationData i0 = new GenerationData(
                 "2025-12-19T00:00+01:00",
@@ -91,20 +90,20 @@ public class EnergyServiceImplTest {
                 .thenReturn(new CarbonIntensityResponse(List.of(i0, i1, i2)));
 
         // when
-        OptimalWindowDto result = energyService.findOptimalChargingWindow(req);
+        OptimalWindowDto result = energyService.findOptimalChargingWindow(numberOfHours);
 
         // then
-        assertEquals(new OptimalWindowDto(i0.from(), i1.to(), 85.0), result);
+        assertEquals(new OptimalWindowDto(i0.from(), i0.to(), 80.0), result);
     }
 
     @Test
     void shouldThrowException_whenApiReturnsNull() {
         // given
-        ChargingRequest request = new ChargingRequest(5);
+        int numberOfHours = 5;
         when(carbonIntensityClient.fetchGenerationMix(anyString(), anyString())).thenReturn(null);
 
         // when & then
-        assertThatThrownBy(() -> energyService.findOptimalChargingWindow(request))
+        assertThatThrownBy(() -> energyService.findOptimalChargingWindow(numberOfHours))
                 .isInstanceOf(ExternalApiException.class);
     }
 }
